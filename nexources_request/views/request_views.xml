@@ -1,0 +1,150 @@
+<odoo>
+    <data>
+        <!-- explicit list view definition -->
+        <record id="request_list" model="ir.ui.view">
+            <field name="name">request.list</field>
+            <field name="model">request.request</field>
+            <field name="arch" type="xml">
+                <list string="Requests">
+                    <field name="priority" widget="priority"/>
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="responsible_id"/>
+                    <field name="creation_date"/>
+                    <field name="validation_date"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="request_form" model="ir.ui.view">
+            <field name="name">request.form</field>
+            <field name="model">request.request</field>
+            <field name="arch" type="xml">
+                <form string="Request">
+                    <!--
+                    <header>
+                        <field name="stage_id" widget="rotting_statusbar_duration"
+                               options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                    </header>
+                    -->
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" widget="text" class="field_name" placeholder="e.g. Need more stuff"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="responsible_id"/>
+                            </group>
+                            <group>
+                                <field name="creation_date"/>
+                                <field name="validation_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Description" name="description">
+                                <field name="description" options="{'collaborative': true}"
+                                       placeholder="Add details about your request..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter reload_on_post="True"/>
+                </form>
+            </field>
+        </record>
+
+        <!--
+        <record id="request_search" model="ir.ui.view">
+            <field name="name">request.search</field>
+            <field name="model">request.request</field>
+            <field name="arch" type="xml">
+                <search string="Requests Search">
+
+
+                    <field name="name" string="Ticket"
+                           filter_domain="['|', ('name', 'ilike', self), ('ticket_ref', 'ilike', self)]"/>
+                    <field name="user_id"/>
+
+
+                    <filter string="My Tickets" domain="[('user_id','=',uid)]" name="my_ticket"/>
+                    <separator/>
+                    <filter name="closed_on" string="Closed On" date="close_date">
+                        <filter name="closed_on_today" string="Today" domain="[('close_date', '&gt;=', 'today')]"/>
+                        <filter name="closed_on_last_7_days" string="Last 7 Days"
+                                domain="[('close_date', '&gt;=', 'today -7d +1d')]"/>
+                        <filter name="closed_on_last_30_days" string="Last 30 Days"
+                                domain="[('close_date', '&gt;=', 'today -30d +1d')]"/>
+                        <filter name="closed_on_last_365_days" string="Last 365 Days"
+                                domain="[('close_date', '&gt;=', 'today -365d +1d')]"/>
+                    </filter>
+                    <separator/>
+                    <filter name="rating_okay" string="Neutral"
+                            domain="[('rating_avg', '&lt;', 3.66), ('rating_avg', '&gt;=', 2.33)]"
+                            groups="helpdesk.group_use_rating"/>
+                    <filter string="Creation Date" date="create_date" name="creation_date">
+                        <filter name="create_date_today" string="Today" domain="[('create_date', '&gt;=', 'today')]"/>
+                        <filter name="create_date_last_7_days" string="Last 7 Days"
+                                domain="[('create_date', '&gt;=', 'today -7d +1d')]"/>
+                        <filter name="create_date_last_30_days" string="Last 30 Days"
+                                domain="[('create_date', '&gt;=', 'today -30d +1d')]"/>
+                        <filter name="create_date_last_365_days" string="Last 365 Days"
+                                domain="[('create_date', '&gt;=', 'today -365d +1d')]"/>
+                    </filter>
+
+
+                    <group>
+                        <filter string="Assigned to" name="assignee" context="{'group_by':'user_id'}"/>
+                        <filter string="Helpdesk Team" name="team" context="{'group_by':'team_id'}"
+                                invisible="context.get('default_team_id', False)"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        -->
+
+
+        <!-- actions opening views on models -->
+        <record id="request_action" model="ir.actions.act_window">
+            <field name="name">All requests</field>
+            <field name="res_model">request.request</field>
+            <field name="view_mode">list,form</field>
+
+            <field name="path">all-requests</field>
+            <!--
+            <field name="search_view_id" ref="request_search"/>
+            <field name="context">{'search_default_is_open': True}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No tickets found. Let's create one!
+                    </p><p>To get things done, plan activities and use the ticket status.<br/>
+                    Collaborate efficiently by chatting in real-time or via email.
+                </p>
+            </field>
+            -->
+        </record>
+
+        <menuitem
+            id="request_root"
+            name="Requests"
+            sequence="100"
+        >
+            <menuitem
+                    id="all_request_menu_action"
+                    name="All requests"
+                    action="nexources_request.request_action"
+                    sequence="5"
+            />
+            <!--
+            <menuitem
+                id="all_request_menu_action"
+                name="Employees"
+                action="hr.action"
+                sequence="5"
+            />
+            -->
+        </menuitem>
+    </data>
+</odoo>
