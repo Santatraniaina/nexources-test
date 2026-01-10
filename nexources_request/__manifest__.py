@@ -17,6 +17,7 @@ Long description of module's purpose
         'security/ir.model.access.csv',
         # views
         'views/request_views.xml',
+        'views/hr_employee_views.xml',
     ],
     'license': 'LGPL-3',
     'installable': True,

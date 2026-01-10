@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="hr_employee_request_form" model="ir.ui.view">
+            <field name="name">hr.employee.request.form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <button name="action_open_versions" position="after">
+                    <button
+                        name="action_view_requests"
+                        class="oe_stat_button"
+                        icon="fa-question-circle-o"
+                        invisible="request_count == 0"
+                        type="object"
+                    >
+                        <div class="o_stat_info">
+                            Requests
+                            <span class="o_stat_value">
+                                <field name="request_count"/>
+                            </span>
+                        </div>
+                    </button>
+                </button>
+            </field>
+        </record>
+    </data>
+</odoo>

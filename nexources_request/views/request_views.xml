@@ -9,10 +9,21 @@
                     <field name="priority" widget="priority"/>
                     <field name="name"/>
                     <field name="employee_id"/>
+                    <field name="department_id" optional="hide"/>
+                    <field name="company_id" optional="hide"/>
                     <field name="responsible_id"/>
                     <field name="creation_date"/>
                     <field name="validation_date"/>
-                    <field name="state"/>
+                    <field name="deadline_date" widget="remaining_days"/>
+                    <field
+                        name="state"
+                        decoration-info="state == 'draft'"
+                        decoration-primary="state == 'sent'"
+                        decoration-warning="state == 'in_progress'"
+                        decoration-success="state == 'done'"
+                        decoration-muted="state == 'cancel'"
+                        widget="badge"
+                    />
                 </list>
             </field>
         </record>
@@ -22,24 +33,31 @@
             <field name="model">request.request</field>
             <field name="arch" type="xml">
                 <form string="Request">
-                    <!--
                     <header>
-                        <field name="stage_id" widget="rotting_statusbar_duration"
-                               options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                        <!-- BUTTON -->
+                        <button name="action_set_draft" string="Set to Draft" type="object" />
+                        <button name="action_send" string="Send Request" type="object" />
+                        <button name="action_in_progress" string="Mark In Progress" type="object" class="oe_highlight"/>
+                        <button name="action_done" string="Mark Done" type="object" class="oe_highlight"/>
+                        <button name="action_cancel" string="Cancel Request" type="object"/>
+                        <!-- STATE -->
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,in_progress,done"/>
                     </header>
-                    -->
                     <sheet>
                         <div class="oe_title">
                             <h1>
-                                <field name="name" widget="text" class="field_name" placeholder="e.g. Need more stuff"/>
+                                <field name="name" placeholder="e.g. Need more stuff"/>
                             </h1>
                         </div>
+                        <separator/>
                         <group>
                             <group>
                                 <field name="employee_id"/>
+                                <field name="company_id"/>
                                 <field name="responsible_id"/>
                             </group>
                             <group>
+                                <field name="priority"/>
                                 <field name="creation_date"/>
                                 <field name="validation_date"/>
                             </group>
@@ -127,24 +145,31 @@
         </record>
 
         <menuitem
-            id="request_root"
+            id="mennu_request_root"
             name="Requests"
             sequence="100"
         >
-            <menuitem
-                    id="all_request_menu_action"
-                    name="All requests"
-                    action="nexources_request.request_action"
-                    sequence="5"
-            />
             <!--
             <menuitem
                 id="all_request_menu_action"
-                name="Employees"
-                action="hr.action"
+                name="My request"
+                action="nexources_request.request_action"
                 sequence="5"
             />
             -->
+            <menuitem
+                id="menu_all_request"
+                name="All requests"
+                action="nexources_request.request_action"
+                sequence="10"
+            />
+
+            <menuitem
+                id="menu_request_employee"
+                name="Employees"
+                action="hr.open_view_employee_list_my"
+                sequence="15"
+            />
         </menuitem>
     </data>
 </odoo>
