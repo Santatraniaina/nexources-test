@@ -20,6 +20,7 @@ class Request(models.Model):
         comodel_name='hr.employee',
         string='Employee',
         ondelete='cascade',
+        tracking=True
     )
     department_id = fields.Many2one(
         comodel_name='hr.department',
@@ -36,7 +37,7 @@ class Request(models.Model):
     responsible_id = fields.Many2one(
         comodel_name='hr.employee',
         string='Responsible',
-        ondelete='set null'
+        tracking=True
     )
     state = fields.Selection(
         selection=[
@@ -49,17 +50,15 @@ class Request(models.Model):
         string='State',
         default='draft',
         required=True,
-    )
-    creation_date = fields.Datetime(
-        string='Creation Date',
-        default=fields.Datetime.now,
-        required=True,
+        tracking=True
     )
     deadline_date = fields.Datetime(
-        string='Deadline Date'
+        string='Deadline Date',
+        tracking=True
     )
     validation_date = fields.Datetime(
-        string='Validation Date'
+        string='Validation Date',
+        tracking=True
     )
 
     def action_set_draft(self):
@@ -81,4 +80,4 @@ class Request(models.Model):
 
     def action_cancel(self):
         print("Action : CANCEL")
-        self.write({'state': 'cancelled'})
+        self.write({'state': 'cancel'})

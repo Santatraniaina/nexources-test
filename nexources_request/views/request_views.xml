@@ -1,20 +1,18 @@
 <odoo>
     <data>
-        <!-- explicit list view definition -->
         <record id="request_list" model="ir.ui.view">
             <field name="name">request.list</field>
             <field name="model">request.request</field>
             <field name="arch" type="xml">
-                <list string="Requests">
+                <list string="Requests" decoration-expired="deadline_date &lt;= context_today() and state != 'done'">
                     <field name="priority" widget="priority"/>
                     <field name="name"/>
                     <field name="employee_id"/>
                     <field name="department_id" optional="hide"/>
                     <field name="company_id" optional="hide"/>
                     <field name="responsible_id"/>
-                    <field name="creation_date"/>
-                    <field name="validation_date"/>
                     <field name="deadline_date" widget="remaining_days"/>
+                    <field name="validation_date"/>
                     <field
                         name="state"
                         decoration-info="state == 'draft'"
@@ -34,13 +32,23 @@
             <field name="arch" type="xml">
                 <form string="Request">
                     <header>
-                        <!-- BUTTON -->
-                        <button name="action_set_draft" string="Set to Draft" type="object" />
-                        <button name="action_send" string="Send Request" type="object" />
-                        <button name="action_in_progress" string="Mark In Progress" type="object" class="oe_highlight"/>
-                        <button name="action_done" string="Mark Done" type="object" class="oe_highlight"/>
-                        <button name="action_cancel" string="Cancel Request" type="object"/>
-                        <!-- STATE -->
+                        <!-- BUTTONS -->
+                        <button name="action_send" string="Send" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"
+                        />
+                        <button name="action_in_progress" string="Mark In Progress" type="object" class="oe_highlight"
+                            invisible="state != 'sent'"
+                        />
+                        <button name="action_done" string="Mark as Done" type="object" class="oe_highlight"
+                            invisible="state not in ('in_progress', 'sent')"
+                        />
+                        <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('draft','sent', 'cancel')"
+                        />
+                        <button name="action_set_draft" string="Set to Draft" type="object"
+                                invisible="state in ('draft', 'in_progress', 'done')"
+                        />
+                        <!-- STATUSBAR -->
                         <field name="state" widget="statusbar" statusbar_visible="draft,sent,in_progress,done"/>
                     </header>
                     <sheet>
@@ -58,8 +66,8 @@
                             </group>
                             <group>
                                 <field name="priority"/>
-                                <field name="creation_date"/>
                                 <field name="validation_date"/>
+                                <field name="deadline_date"/>
                             </group>
                         </group>
                         <notebook>
@@ -74,55 +82,42 @@
             </field>
         </record>
 
-        <!--
         <record id="request_search" model="ir.ui.view">
             <field name="name">request.search</field>
             <field name="model">request.request</field>
             <field name="arch" type="xml">
                 <search string="Requests Search">
-
-
-                    <field name="name" string="Ticket"
-                           filter_domain="['|', ('name', 'ilike', self), ('ticket_ref', 'ilike', self)]"/>
-                    <field name="user_id"/>
-
-
-                    <filter string="My Tickets" domain="[('user_id','=',uid)]" name="my_ticket"/>
+                    <!-- SEARCH FIELDS -->
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <!-- FILTERS -->
+                    <filter string="Sent" domain="[('state','=','sent')]" name="sent"/>
+                    <filter string="In progress" domain="[('state','=','in_progress')]" name="in_progress"/>
+                    <filter string="Done" domain="[('state','=','done')]" name="done"/>
                     <separator/>
-                    <filter name="closed_on" string="Closed On" date="close_date">
-                        <filter name="closed_on_today" string="Today" domain="[('close_date', '&gt;=', 'today')]"/>
-                        <filter name="closed_on_last_7_days" string="Last 7 Days"
-                                domain="[('close_date', '&gt;=', 'today -7d +1d')]"/>
-                        <filter name="closed_on_last_30_days" string="Last 30 Days"
-                                domain="[('close_date', '&gt;=', 'today -30d +1d')]"/>
-                        <filter name="closed_on_last_365_days" string="Last 365 Days"
-                                domain="[('close_date', '&gt;=', 'today -365d +1d')]"/>
-                    </filter>
-                    <separator/>
-                    <filter name="rating_okay" string="Neutral"
-                            domain="[('rating_avg', '&lt;', 3.66), ('rating_avg', '&gt;=', 2.33)]"
-                            groups="helpdesk.group_use_rating"/>
-                    <filter string="Creation Date" date="create_date" name="creation_date">
+                    <filter string="Creation Date" date="create_date" name="create_date">
                         <filter name="create_date_today" string="Today" domain="[('create_date', '&gt;=', 'today')]"/>
+                        <filter name="create_date_last_24_hours" string="Last 24 Hours"
+                                domain="[('create_date', '&gt;=', 'now -1d')]"/>
+                        <filter name="create_date_last_3_days" string="Last 3 Days"
+                                domain="[('create_date', '&gt;=', 'today -3d +1d')]"/>
                         <filter name="create_date_last_7_days" string="Last 7 Days"
                                 domain="[('create_date', '&gt;=', 'today -7d +1d')]"/>
-                        <filter name="create_date_last_30_days" string="Last 30 Days"
-                                domain="[('create_date', '&gt;=', 'today -30d +1d')]"/>
-                        <filter name="create_date_last_365_days" string="Last 365 Days"
-                                domain="[('create_date', '&gt;=', 'today -365d +1d')]"/>
                     </filter>
-
-
+                    <!-- GROUP BY -->
                     <group>
-                        <filter string="Assigned to" name="assignee" context="{'group_by':'user_id'}"/>
-                        <filter string="Helpdesk Team" name="team" context="{'group_by':'team_id'}"
-                                invisible="context.get('default_team_id', False)"/>
+                        <filter string="Employee" name="employee" context="{'group_by':'employee_id'}"/>
+                        <filter string="Responsible" name="responsible" context="{'group_by':'responsible_id'}"/>
+                        <filter string="Department" name="department" context="{'group_by':'department_id'}"/>
+                        <filter string="Company" name="company" context="{'group_by':'company_id'}"/>
+                        <separator/>
+                        <filter string="Priority" name="priority" context="{'group_by':'priority'}"/>
+                        <filter string="State" name="state" context="{'group_by':'state'}"/>
+                        <filter string="Deadline Date" name="deadline_date" context="{'group_by':'deadline_date'}"/>
                     </group>
                 </search>
             </field>
         </record>
-        -->
-
 
         <!-- actions opening views on models -->
         <record id="request_action" model="ir.actions.act_window">
@@ -131,8 +126,8 @@
             <field name="view_mode">list,form</field>
 
             <field name="path">all-requests</field>
-            <!--
             <field name="search_view_id" ref="request_search"/>
+            <!--
             <field name="context">{'search_default_is_open': True}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
@@ -151,7 +146,7 @@
         >
             <!--
             <menuitem
-                id="all_request_menu_action"
+                id="menu_my_request"
                 name="My request"
                 action="nexources_request.request_action"
                 sequence="5"

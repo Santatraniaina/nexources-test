@@ -20,6 +20,13 @@ class HREmployee(models.Model):
             employee.request_count = len(employee.request_ids)
 
     def action_view_requests(self):
+        """
+        Action to view requests related to the employee.
+        If there's only one request, it opens the form view of that request.
+        If there are multiple requests, it opens a list view filtered by the employee.
+
+        :return: Dictionary defining the action to be performed.
+        """
         self.ensure_one()
         if self.request_count == 1:
             return {

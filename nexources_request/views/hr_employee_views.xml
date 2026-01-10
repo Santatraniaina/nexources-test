@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
         <record id="hr_employee_request_form" model="ir.ui.view">
             <field name="name">hr.employee.request.form</field>
             <field name="model">hr.employee</field>
