@@ -4,10 +4,11 @@
             <field name="name">request.list</field>
             <field name="model">request.request</field>
             <field name="arch" type="xml">
-                <list string="Requests" decoration-expired="deadline_date &lt;= context_today() and state != 'done'">
-                    <field name="priority" widget="priority"/>
+                <list string="Requests" decoration-danger="deadline_date &lt;= context_today() and state != 'done'">
+                    <field name="priority" widget="priority" readonly="1"/>
                     <field name="name"/>
                     <field name="employee_id"/>
+                    <field name="department_id" optional="hide"/>
                     <field name="department_id" optional="hide"/>
                     <field name="company_id" optional="hide"/>
                     <field name="responsible_id"/>
@@ -37,13 +38,13 @@
                             invisible="state != 'draft'"
                         />
                         <button name="action_in_progress" string="Mark In Progress" type="object" class="oe_highlight"
-                            invisible="state != 'sent'"
+                            invisible="state != 'sent'" groups="nexources_request.group_request_manager"
                         />
                         <button name="action_done" string="Mark as Done" type="object" class="oe_highlight"
-                            invisible="state not in ('in_progress', 'sent')"
+                            invisible="state not in ('in_progress', 'sent')" groups="nexources_request.group_request_manager"
                         />
                         <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('draft','sent', 'cancel')"
+                            invisible="state in ('draft','sent', 'cancel')" groups="nexources_request.group_request_manager"
                         />
                         <button name="action_set_draft" string="Set to Draft" type="object"
                                 invisible="state in ('draft', 'in_progress', 'done')"
@@ -54,20 +55,21 @@
                     <sheet>
                         <div class="oe_title">
                             <h1>
-                                <field name="name" placeholder="e.g. Need more stuff"/>
+                                <field name="name" placeholder="e.g. Need more stuff" readonly="state != 'draft'"/>
                             </h1>
                         </div>
                         <separator/>
                         <group>
                             <group>
-                                <field name="employee_id"/>
-                                <field name="company_id"/>
-                                <field name="responsible_id"/>
+                                <field name="employee_id" readonly="state != 'draft'"/>
+                                <field name="manager_id" readonly="1"/>
+                                <field name="company_id" readonly="1"/>
+                                <field name="responsible_id" readonly="state not in ('draft', 'sent')"/>
                             </group>
                             <group>
-                                <field name="priority"/>
-                                <field name="validation_date"/>
-                                <field name="deadline_date"/>
+                                <field name="priority" readonly="state != 'draft'"/>
+                                <field name="validation_date" readonly="1"/>
+                                <field name="deadline_date" readonly="state != 'draft'"/>
                             </group>
                         </group>
                         <notebook>
@@ -119,44 +121,45 @@
             </field>
         </record>
 
-        <!-- actions opening views on models -->
-        <record id="request_action" model="ir.actions.act_window">
+        <record id="all_request_action" model="ir.actions.act_window">
             <field name="name">All requests</field>
             <field name="res_model">request.request</field>
             <field name="view_mode">list,form</field>
-
-            <field name="path">all-requests</field>
             <field name="search_view_id" ref="request_search"/>
-            <!--
-            <field name="context">{'search_default_is_open': True}</field>
+        </record>
+
+        <record id="my_request_action" model="ir.actions.act_window">
+            <field name="name">My requests</field>
+            <field name="res_model">request.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="request_search"/>
+            <field name="domain">[('employee_id.user_id','=',uid)]</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
-                    No tickets found. Let's create one!
-                    </p><p>To get things done, plan activities and use the ticket status.<br/>
-                    Collaborate efficiently by chatting in real-time or via email.
+                    You have no requests yet. Create one to get started!
                 </p>
             </field>
-            -->
         </record>
 
         <menuitem
-            id="mennu_request_root"
+            id="menu_request_root"
             name="Requests"
             sequence="100"
+            groups="nexources_request.group_request_user"
         >
-            <!--
             <menuitem
                 id="menu_my_request"
-                name="My request"
-                action="nexources_request.request_action"
+                name="My requests"
+                action="nexources_request.my_request_action"
                 sequence="5"
+                groups="nexources_request.group_request_user"
             />
-            -->
             <menuitem
                 id="menu_all_request"
                 name="All requests"
-                action="nexources_request.request_action"
+                action="nexources_request.all_request_action"
                 sequence="10"
+                groups="nexources_request.group_request_manager"
             />
 
             <menuitem
@@ -164,6 +167,7 @@
                 name="Employees"
                 action="hr.open_view_employee_list_my"
                 sequence="15"
+                groups="nexources_request.group_request_manager"
             />
         </menuitem>
     </data>

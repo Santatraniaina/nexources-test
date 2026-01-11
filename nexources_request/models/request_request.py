@@ -1,6 +1,7 @@
-from odoo import models, fields
+from odoo import models, fields, _
+from odoo.exceptions import UserError
 
-TICKET_PRIORITY = [
+PRIORITY = [
     ('0', 'Low priority'),
     ('1', 'Medium priority'),
     ('2', 'High priority'),
@@ -13,14 +14,16 @@ class Request(models.Model):
     _description = 'request.request'
     _order = 'priority desc, deadline_date asc'
 
-    name = fields.Char("Title")
-    priority = fields.Selection(TICKET_PRIORITY, string='Priority', default='0', tracking=True)
+
+    name = fields.Char("Title", required=True, tracking=True)
+    priority = fields.Selection(PRIORITY, string='Priority', default='1', tracking=True)
     description = fields.Html("Description")
     employee_id = fields.Many2one(
         comodel_name='hr.employee',
         string='Employee',
-        ondelete='cascade',
-        tracking=True
+        tracking=True,
+        required=True,
+        default=lambda self: self.env.user.employee_id.id
     )
     department_id = fields.Many2one(
         comodel_name='hr.department',
@@ -34,10 +37,16 @@ class Request(models.Model):
         required=True,
         default=lambda self: self.env.company,
     )
+    manager_id = fields.Many2one(
+        comodel_name='hr.employee',
+        string='Manager',
+        related='employee_id.parent_id'
+    )
     responsible_id = fields.Many2one(
         comodel_name='hr.employee',
         string='Responsible',
-        tracking=True
+        tracking=True,
+        help="Employee responsible for handling the request"
     )
     state = fields.Selection(
         selection=[
@@ -62,22 +71,29 @@ class Request(models.Model):
     )
 
     def action_set_draft(self):
-        print("Action : SET DRAFT")
         requests = self.filtered(lambda req: req.state in ['sent', 'cancel'])
         return requests.write({'state': 'draft'})
 
     def action_send(self):
-        print("Action : SEND")
         self.write({'state': 'sent'})
 
     def action_in_progress(self):
-        print("Action : IN PROGRESS")
         self.write({'state': 'in_progress'})
 
     def action_done(self):
-        print("Action : DONE")
-        self.write({'state': 'done'})
+        self.write({
+            'state': 'done',
+            'validation_date': fields.Datetime.now()
+        })
 
     def action_cancel(self):
-        print("Action : CANCEL")
-        self.write({'state': 'cancel'})
+        self.write({
+            'state': 'cancel',
+            'validation_date': False
+        })
+
+    def unlink(self):
+        for request in self:
+            if request.state not in ['draft', 'cancel']:
+                raise UserError(_("You can only delete requests in Draft or Cancelled state."))
+        return super(Request, self).unlink()
